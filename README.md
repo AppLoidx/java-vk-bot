@@ -5,6 +5,20 @@
 git clone https://github.com/AppLoidx/java-vk-bot.git
 ```
 
+## Adding access token from vk
+```java
+public class VkApp {
+    public static void launch(String accessToken, int groupId){
+        vk.VkApp app = new vk.VkApp(accessToken, groupId);
+        app.launch();
+    }
+
+    public static void launch() {
+        launch("accessToken", 1111);    // access_token, group_id
+    }
+}
+```
+
 ## Adding new Command
 In package `package command.impl`
 ```java
