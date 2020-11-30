@@ -1,13 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+    <property name="LOGS" value="./logs"/>
 
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <target>System.out</target>
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
+    <appender name="Console"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %cyan(%d{ISO8601}) %highlight(%-5level) %yellow(%-40C{39}): %msg%n%throwable
+            </Pattern>
+        </layout>
     </appender>
+
+    <appender name="RollingFile"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/spring-boot-logger.log</file>
+        <layout
+                class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d %p %C{1.} [%t] %m%n</Pattern>
+        </layout>
+
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily and when the file reaches 10 MegaBytes -->
+            <fileNamePattern>${LOGS}/archived/spring-boot-logger-%d{yyyy-MM-dd}.%i.log
+            </fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy
+                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+
+    <!-- LOG everything at INFO level -->
     <root level="info">
-        <appender-ref ref="console"/>
+        <appender-ref ref="RollingFile"/>
+        <appender-ref ref="Console"/>
     </root>
+
+    <logger name="ch.qos.logback" level="error" additivity="false">
+        <appender-ref ref="RollingFile"/>
+        <appender-ref ref="Console"/>
+    </logger>
 
 </configuration>

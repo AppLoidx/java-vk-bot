@@ -1,7 +1,7 @@
 package command;
 
-import lombok.extern.java.Log;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -18,16 +18,17 @@ import java.util.Map;
 /**
  * @author Arthur Kupriyanov on 24.04.2020
  */
-@Slf4j
+
 public class CommandLoader {
+    private final static Logger log = LoggerFactory.getLogger(CommandLoader.class);
     private final Map<List<String>, Executable> commandMap = new HashMap<>();
 
-    public Executable getCommand(String name){
+    public Executable getCommand(String name) {
         return findByName(name);
     }
 
-    private Executable findByName(String name){
-        for (List<String> keys : commandMap.keySet()){
+    private Executable findByName(String name) {
+        for (List<String> keys : commandMap.keySet()) {
             if (keys.contains(name)) return commandMap.get(keys);
         }
 
@@ -40,12 +41,12 @@ public class CommandLoader {
 
         scanner.addIncludeFilter(new AnnotationTypeFilter(Command.class));
 
-        for (BeanDefinition bd : scanner.findCandidateComponents(commandsPackage)){
+        for (BeanDefinition bd : scanner.findCandidateComponents(commandsPackage)) {
             try {
-                System.out.println(bd.getBeanClassName());
+                log.info("Found bean with class name : " + bd.getBeanClassName());
                 processBean(bd);
-            } catch (ClassNotFoundException e){
-                log.error("Command class not found");
+            } catch (ClassNotFoundException e) {
+                log.warn("Command class not found");
             }
         }
 
@@ -55,19 +56,18 @@ public class CommandLoader {
         Class<?> clazz = Class.forName(bd.getBeanClassName());
 
         if (!isImplementedInterface(clazz)) {
-            System.out.println(String.format("Command %s not implemented %s", clazz.getSimpleName(), Executable.class.getSimpleName()));
+            log.warn(String.format("Command %s not implemented %s", clazz.getSimpleName(), Executable.class.getSimpleName()));
             return;
         }
 
         for (Constructor<?> c : clazz.getDeclaredConstructors()) {
             Constructor<Executable> castedConstructor = (Constructor<Executable>) c;
-            Executable commandInstance = null;
+            Executable commandInstance;
             castedConstructor.setAccessible(true);
             if (castedConstructor.getParameterTypes().length == 0) {
                 try {
                     commandInstance = castedConstructor.newInstance();
                     commandMap.put(getCommandNames(clazz), commandInstance);
-                    System.out.println("Added command");
                     log.info("Added command: " + bd.getBeanClassName());
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();

@@ -6,15 +6,12 @@ import com.vk.api.sdk.client.actors.GroupActor;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.httpclient.HttpTransportClient;
-import com.vk.api.sdk.objects.messages.Message;
 import command.CommandLoader;
-import model.BotResponse;
-import util.BotResponseFactoryUtil;
 
 /**
  * @author Arthur Kupriyanov
  */
-public class VkApp  {
+public class VkApp {
     private static VkApiClient vkApiClient;
     private static GroupActor groupActor;
     private final TransportClient transportClient = new HttpTransportClient();
@@ -42,12 +39,10 @@ public class VkApp  {
             CommandLoader cl = new CommandLoader();
             cl.init("command.impl");
             VkMessenger vkMessenger = new VkMessenger(groupActor, vkApiClient);
-            CallbackApiLongPollHandler handler = new CallbackApiLongPollHandler(vkApiClient, groupActor, new MessageHandler() {
-                @Override
-                public BotResponse handle(Message message) throws Exception {
-                    vkMessenger.sendMessage(cl.getCommand(message.getText()).execute(new model.Message(message.getPeerId(), message.getText())));
-                    return cl.getCommand(message.getText()).execute(new model.Message(message.getPeerId(), message.getText()));
-                }
+            CallbackApiLongPollHandler handler = new CallbackApiLongPollHandler(vkApiClient, groupActor, message -> {
+                vkMessenger.sendMessage(cl.getCommand(message.getText())
+                        .execute(new model.Message(message.getPeerId(), message.getText())));
+                return cl.getCommand(message.getText()).execute(new model.Message(message.getPeerId(), message.getText()));
             });
             handler.run();
 
@@ -57,11 +52,15 @@ public class VkApp  {
 
     }
 
-    static VkApiClient getVkApiClient(){ return vkApiClient;}
-    public static VkMessenger getVkMessenger(){
+    static VkApiClient getVkApiClient() {
+        return vkApiClient;
+    }
+
+    public static VkMessenger getVkMessenger() {
         return vkMessenger;
     }
-    private GroupActor init()  {
+
+    private GroupActor init() {
         vkApiClient = new VkApiClient(this.transportClient);
 
         return new GroupActor(groupID, accessToken);

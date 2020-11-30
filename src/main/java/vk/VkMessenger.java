@@ -11,9 +11,10 @@ import model.BotResponse;
  */
 
 public class VkMessenger {
-    private GroupActor groupActor;
-    private VkApiClient vkApiClient;
-    public VkMessenger(GroupActor groupActor, VkApiClient vkApiClient){
+    private final GroupActor groupActor;
+    private final VkApiClient vkApiClient;
+
+    public VkMessenger(GroupActor groupActor, VkApiClient vkApiClient) {
         this.groupActor = groupActor;
         this.vkApiClient = vkApiClient;
     }
